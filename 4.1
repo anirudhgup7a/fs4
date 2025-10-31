@@ -1,0 +1,125 @@
+const readline = require('readline');
+
+class EmployeeManagementSystem {
+  constructor() {
+    this.employees = [];
+    this.rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+  }
+
+  // Generate a unique employee ID
+  generateEmployeeId() {
+    const idNumber = this.employees.length + 1;
+    return E${idNumber.toString().padStart(3, '0')};
+  }
+
+  // Display the main menu
+  displayMenu() {
+    console.log('\nEmployee Management System');
+    console.log('1. Add Employee');
+    console.log('2. List Employees');
+    console.log('3. Remove Employee');
+    console.log('4. Exit\n');
+  }
+
+  // Add a new employee
+  addEmployee() {
+    this.rl.question('Enter employee name: ', (name) => {
+      if (name.trim() === '') {
+        console.log('Employee name cannot be empty. Please try again.');
+        this.addEmployee();
+        return;
+      }
+
+      const id = this.generateEmployeeId();
+      this.employees.push({ name: name.trim(), id });
+      console.log(Employee ${name} added with ID: ${id});
+      this.showMenu();
+    });
+  }
+
+  // List all employees
+  listEmployees() {
+    if (this.employees.length === 0) {
+      console.log('No employees found.');
+    } else {
+      console.log('\nEmployee List:');
+      this.employees.forEach((employee, index) => {
+        console.log(${index + 1}. Name: ${employee.name}, ID: ${employee.id});
+      });
+    }
+    this.showMenu();
+  }
+
+  // Remove an employee by ID
+  removeEmployee() {
+    if (this.employees.length === 0) {
+      console.log('No employees to remove.');
+      this.showMenu();
+      return;
+    }
+
+    this.rl.question('Enter employee ID to remove: ', (id) => {
+      const index = this.employees.findIndex(emp => emp.id === id.toUpperCase());
+      
+      if (index !== -1) {
+        const removedEmployee = this.employees.splice(index, 1)[0];
+        console.log(Employee ${removedEmployee.name} (ID: ${removedEmployee.id}) removed successfully.);
+      } else {
+        console.log(Employee with ID ${id} not found.);
+      }
+      
+      this.showMenu();
+    });
+  }
+
+  // Handle user menu selection
+  handleMenuSelection(choice) {
+    switch (choice) {
+      case '1':
+        this.addEmployee();
+        break;
+      case '2':
+        this.listEmployees();
+        break;
+      case '3':
+        this.removeEmployee();
+        break;
+      case '4':
+        console.log('Exiting Employee Management System. Goodbye!');
+        this.rl.close();
+        break;
+      default:
+        console.log('Invalid choice. Please enter a number between 1 and 4.');
+        this.showMenu();
+        break;
+    }
+  }
+
+  // Show the menu and prompt for user input
+  showMenu() {
+    this.displayMenu();
+    this.rl.question('Enter your choice: ', (choice) => {
+      this.handleMenuSelection(choice.trim());
+    });
+  }
+
+  // Initialize the application with some sample data
+  initialize() {
+    // Add some sample employees
+    this.employees.push(
+      { name: 'Alice', id: 'E101' },
+      { name: 'Bob', id: 'E102' },
+      { name: 'Charlie', id: 'E103' }
+    );
+    
+    console.log('Welcome to the Employee Management System!');
+    this.showMenu();
+  }
+}
+
+// Create and start the application
+const app = new EmployeeManagementSystem();
+app.initialize();
