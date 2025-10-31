@@ -1,0 +1,77 @@
+// app.js
+const express = require("express");
+const app = express();
+const PORT = 3000;
+
+// Middleware to parse JSON bodies (optional, good to have)
+app.use(express.json());
+
+let seats = {};
+const TOTAL_SEATS = 10;
+
+// Initialize seats with string keys for consistency
+for (let i = 1; i <= TOTAL_SEATS; i++) {
+  seats[i.toString()] = { status: "available", lockTimeout: null };
+}
+
+app.get("/seats", (req, res) => {
+  res.status(200).json(seats);
+});
+
+app.post("/lock/:seatId", (req, res) => {
+  const seatId = req.params.seatId;
+
+  if (!seats.hasOwnProperty(seatId)) {
+    return res.status(404).json({ message: "Seat does not exist" });
+  }
+
+  if (seats[seatId].status === "booked") {
+    return res.status(400).json({ message: "Seat already booked" });
+  }
+
+  if (seats[seatId].status === "locked") {
+    return res.status(400).json({ message: "Seat is already locked" });
+  }
+
+  // Clear existing timeout if any (defensive)
+  if (seats[seatId].lockTimeout) {
+    clearTimeout(seats[seatId].lockTimeout);
+  }
+
+  seats[seatId].status = "locked";
+
+  seats[seatId].lockTimeout = setTimeout(() => {
+    if (seats[seatId].status === "locked") {
+      seats[seatId].status = "available";
+      seats[seatId].lockTimeout = null;
+      console.log(Lock expired for seat ${seatId});
+    }
+  }, 60 * 1000); // 1 minute lock expiry
+
+  res.status(200).json({ message: Seat ${seatId} locked successfully. Confirm within 1 minute. });
+});
+
+app.post("/confirm/:seatId", (req, res) => {
+  const seatId = req.params.seatId;
+
+  if (!seats.hasOwnProperty(seatId)) {
+    return res.status(404).json({ message: "Seat does not exist" });
+  }
+
+  if (seats[seatId].status !== "locked") {
+    return res.status(400).json({ message: "Seat is not locked and cannot be booked" });
+  }
+
+  if (seats[seatId].lockTimeout) {
+    clearTimeout(seats[seatId].lockTimeout);
+    seats[seatId].lockTimeout = null;
+  }
+
+  seats[seatId].status = "booked";
+
+  res.status(200).json({ message: Seat ${seatId} booked successfully! });
+});
+
+app.listen(PORT, () => {
+  console.log(Server running at http://localhost:${PORT});
+});
